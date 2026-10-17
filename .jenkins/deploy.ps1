@@ -32,7 +32,7 @@ try {
 
 	Start-Service $serviceName
 	$service.WaitForStatus('Running', '00:00:30')
-	Start-Sleep -Seconds 5
+	Start-Sleep -Seconds 30
 	if ((Get-Service $serviceName).Status -ne 'Running') {
 		throw "$serviceName did not remain running"
 	}
