@@ -102,6 +102,7 @@ New-Item -ItemType Directory -Path $env:CARGO_HOME -Force | Out-Null
 
 Invoke-NativeCommand -FilePath git -ArgumentList @('config', '--global', '--add', 'safe.directory', $gitRepoRoot)
 Invoke-NativeCommand -FilePath git -ArgumentList @('config', '--global', '--add', 'safe.directory', "$gitRepoRoot/*")
+Invoke-NativeCommand -FilePath git -ArgumentList @('config', '--global', '--add', 'safe.directory', $env:VCPKG_ROOT.Replace('\', '/'))
 
 Push-Location $repoRoot
 try {
