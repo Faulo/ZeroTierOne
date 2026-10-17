@@ -66,10 +66,10 @@ pipeline {
 				unstash 'deploy'
 
 				script {
-					def targets = ['popo', 'dende.fritz.box']
+					def targets = ['popo', 'dende']
 
 					for (def target in targets) {
-						def ip = execStdout "getent ahostsv4 $target | awk '\$1 ~ /^192.168./ { print \$1; exit }'"
+						def ip = execStdout "for ip in \$(getent ahostsv4 $target | awk '\$1 ~ /^192\\.168\\.178\\./ { print \$1 }' | sort -u); do timeout 3 bash -c \"</dev/tcp/\$ip/22\" 2>/dev/null && { echo \$ip; break; }; done"
 
 						echo "IP of '$target' is: $ip"
 
