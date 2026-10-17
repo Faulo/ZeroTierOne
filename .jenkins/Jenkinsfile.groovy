@@ -27,8 +27,8 @@ pipeline {
 				stage('Build') {
 					steps {
 						exec 'New-Item -ItemType Directory -Force .jenkins/artifacts, .jenkins/cache/cargo, .jenkins/reports | Out-Null'
-						exec 'msbuild.exe windows/ZeroTierOne.sln -m -t:ZeroTierOne -p:Configuration=$BUILD_CONFIGURATION -p:Platform=$BUILD_PLATFORM -p:VCToolsVersion=$env:MSVC_TOOLSET_VERSION -verbosity:minimal'
-						exec 'Copy-Item windows/Build/x64/Release/zerotier-one_x64.exe $DEPLOY_BINARY'
+						exec 'msbuild.exe windows/ZeroTierOne.sln -m -t:ZeroTierOne -p:Configuration=$env:BUILD_CONFIGURATION -p:Platform=$env:BUILD_PLATFORM -p:VCToolsVersion=$env:MSVC_TOOLSET_VERSION -verbosity:minimal'
+						exec 'Copy-Item windows/Build/x64/Release/zerotier-one_x64.exe $env:DEPLOY_BINARY'
 					}
 					post {
 						success {
@@ -39,7 +39,7 @@ pipeline {
 				}
 				stage('Test') {
 					steps {
-						exec '& $DEPLOY_BINARY -v'
+						exec '& $env:DEPLOY_BINARY -v'
 						writeFile file: '.jenkins/reports/smoke.xml', text: '<testsuites tests="1"><testsuite name="ZeroTierOne" tests="1"><testcase name="version"/></testsuite></testsuites>'
 					}
 					post {
