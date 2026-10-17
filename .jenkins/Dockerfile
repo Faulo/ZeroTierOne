@@ -12,9 +12,13 @@ RUN & C:/zerotier-build/install-build-tools.ps1
 
 ENV CARGO_HOME="C:\cargo" `
     RUSTUP_HOME="C:\rustup" `
-    VCPKG_ROOT="C:\vcpkg"
+    VCPKG_ROOT="C:\vcpkg" `
+    VCPKG_FORCE_SYSTEM_BINARIES="1" `
+    VCPKG_KEEP_ENV_VARS="PATH"
 
-RUN cmake --version; `
+RUN where.exe cl; `
+    if ($LASTEXITCODE -ne 0) { throw 'MSVC compiler is not on PATH' }; `
+    cmake --version; `
     ninja --version; `
     cargo --version; `
     rustc --version; `

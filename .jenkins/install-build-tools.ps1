@@ -75,6 +75,28 @@ if ($LASTEXITCODE -ne 0) {
 	throw 'vcpkg bootstrap failed'
 }
 
+$vsDevCommand = 'C:\BuildTools\2022\Common7\Tools\VsDevCmd.bat'
+if (-not (Test-Path -LiteralPath $vsDevCommand -PathType Leaf)) {
+	throw "Visual Studio developer command file does not exist: $vsDevCommand"
+}
+$developerEnvironment = & $env:ComSpec /s /c "`"$vsDevCommand`" -arch=x64 -host_arch=x64 >nul && set"
+if ($LASTEXITCODE -ne 0) {
+	throw "Visual Studio developer environment failed with exit code $LASTEXITCODE"
+}
+foreach ($entry in $developerEnvironment) {
+	$separator = $entry.IndexOf('=')
+	if ($separator -gt 0) {
+		$name = $entry.Substring(0, $separator)
+		$value = $entry.Substring($separator + 1)
+		[Environment]::SetEnvironmentVariable($name, $value, 'Machine')
+	}
+}
+
 $machinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
 $toolPaths = @('C:\cmake\bin', 'C:\ninja', 'C:\7zip', 'C:\pwsh', 'C:\cargo\bin', 'C:\vcpkg')
 [Environment]::SetEnvironmentVariable('Path', (($toolPaths + $machinePath) -join ';'), 'Machine')
+
+& 'C:\Git\cmd\git.exe' config --system --add safe.directory '*'
+if ($LASTEXITCODE -ne 0) {
+	throw 'Configuring Git safe directories failed'
+}

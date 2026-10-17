@@ -10,24 +10,35 @@ pipeline {
 		disableConcurrentBuilds()
 		disableResume()
 	}
+	environment {
+		CMAKE_BUILD_TYPE = 'Release'
+		CMAKE_GENERATOR = 'Ninja'
+		CMAKE_PREFIX_PATH = 'ext/opentelemetry-cpp-api-only'
+		CMAKE_TOOLCHAIN_FILE = 'C:/vcpkg/scripts/buildsystems/vcpkg.cmake'
+		VCPKG_DEFAULT_TRIPLET = 'x64-windows-static'
+	}
 	stages {
 		stage('Build') {
 			steps {
-				powershell '& .\\.jenkins\\build.ps1'
+				dir('.jenkins/result') {
+					deleteDir()
+				}
+				exec 'cmake -S . -B .jenkins/result'
+				exec 'cmake --build .jenkins/result --parallel'
 			}
 			post {
 				success {
-					archiveArtifacts artifacts: '.jenkins/artifacts/**.exe'
+					archiveArtifacts artifacts: 'result/*.exe'
 				}
 			}
 		}
 		stage('Test') {
 			steps {
-				powershell '& .\\.jenkins\\test.ps1'
+				exec 'ctest --test-dir .jenkins/result -C $CMAKE_BUILD_TYPE --output-on-failure --output-junit .jenkins/result/CTestResults.xml'
 			}
 			post {
 				always {
-					junit testResults: '.jenkins/reports/**.xml'
+					junit testResults: '.jenkins/result/*.xml'
 				}
 			}
 		}
