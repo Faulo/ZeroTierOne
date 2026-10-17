@@ -80,8 +80,7 @@ pipeline {
 						def remote = [
 							name: target,
 							host: ip,
-							allowAnyHosts: true,
-							sudo: true
+							allowAnyHosts: true
 						]
 						
 						withCredentials([sshUserPrivateKey(credentialsId: SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY_FILE', usernameVariable: 'SSH_USER')]) {
@@ -90,7 +89,7 @@ pipeline {
 							
 							sshPut remote: remote, from: DEPLOY_SCRIPT, into: DEPLOY_SCRIPT
 							sshPut remote: remote, from: DEPLOY_BINARY, into: DEPLOY_BINARY
-							sshCommand remote: remote, command: "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $DEPLOY_SCRIPT -Binary $DEPLOY_BINARY"
+							sshCommand remote: remote, command: "pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $DEPLOY_SCRIPT -Binary $DEPLOY_BINARY"
 						}
 					}
 				}
