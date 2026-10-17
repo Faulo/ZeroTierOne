@@ -91,14 +91,12 @@ $buildDirectory = Join-Path $repoRoot 'build-windows-x64'
 
 $env:CARGO_HOME = Join-Path $cacheRoot 'cargo'
 $env:VCPKG_DEFAULT_BINARY_CACHE = Join-Path $cacheRoot 'vcpkg-binaries'
-$env:VCPKG_DOWNLOADS = Join-Path $cacheRoot 'vcpkg-downloads'
-$vcpkgExtractedTools = Join-Path $env:VCPKG_DOWNLOADS 'tools'
+$env:VCPKG_FORCE_SYSTEM_BINARIES = '1'
+$env:VCPKG_KEEP_ENV_VARS = 'PATH'
 
 Remove-Item -LiteralPath $artifacts -Recurse -Force -ErrorAction SilentlyContinue
-Remove-Item -LiteralPath $vcpkgExtractedTools -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Path $artifacts | Out-Null
 New-Item -ItemType Directory -Path $env:VCPKG_DEFAULT_BINARY_CACHE -Force | Out-Null
-New-Item -ItemType Directory -Path $env:VCPKG_DOWNLOADS -Force | Out-Null
 New-Item -ItemType Directory -Path $env:CARGO_HOME -Force | Out-Null
 
 Push-Location $repoRoot
