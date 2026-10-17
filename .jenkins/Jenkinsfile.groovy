@@ -21,12 +21,14 @@ pipeline {
 					label 'windows && docker'
 				}
 			}
+			environment {
+				CARGO_HOME = "${WORKSPACE}/.jenkins/cache/cargo"
+				VCPKG_DEFAULT_BINARY_CACHE = "${WORKSPACE}/.jenkins/cache/vcpkg"
+			}
 			stages {
 				stage('Build') {
 					steps {
-						dir('.jenkins/results') {
-							deleteDir()
-						}
+						exec 'cmake -E make_directory .jenkins/results .jenkins/cache/cargo .jenkins/cache/vcpkg'
 						exec 'cmake -S . -B .jenkins/results'
 						exec 'cmake --build .jenkins/results --parallel'
 					}
@@ -38,7 +40,8 @@ pipeline {
 				}
 				stage('Test') {
 					steps {
-						exec 'ctest --test-dir .jenkins/results -C %CMAKE_BUILD_TYPE% --output-on-failure --output-junit .jenkins/results/CTestResults.xml'
+						exec 'cmake -E rm -f .jenkins/results/CTestResults.xml'
+						exec 'ctest --test-dir .jenkins/results -C $CMAKE_BUILD_TYPE --output-on-failure --output-junit CTestResults.xml'
 					}
 					post {
 						always {
