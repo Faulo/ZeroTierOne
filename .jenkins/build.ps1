@@ -88,6 +88,7 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $artifacts = Join-Path $PSScriptRoot 'artifacts'
 $cacheRoot = Join-Path $PSScriptRoot 'cache'
 $buildDirectory = Join-Path $repoRoot 'build-windows-x64'
+$gitRepoRoot = $repoRoot.Replace('\', '/')
 
 $env:CARGO_HOME = Join-Path $cacheRoot 'cargo'
 $env:VCPKG_DEFAULT_BINARY_CACHE = Join-Path $cacheRoot 'vcpkg-binaries'
@@ -98,6 +99,9 @@ Remove-Item -LiteralPath $artifacts -Recurse -Force -ErrorAction SilentlyContinu
 New-Item -ItemType Directory -Path $artifacts | Out-Null
 New-Item -ItemType Directory -Path $env:VCPKG_DEFAULT_BINARY_CACHE -Force | Out-Null
 New-Item -ItemType Directory -Path $env:CARGO_HOME -Force | Out-Null
+
+Invoke-NativeCommand -FilePath git -ArgumentList @('config', '--global', '--add', 'safe.directory', $gitRepoRoot)
+Invoke-NativeCommand -FilePath git -ArgumentList @('config', '--global', '--add', 'safe.directory', "$gitRepoRoot/*")
 
 Push-Location $repoRoot
 try {
