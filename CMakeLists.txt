@@ -691,5 +691,9 @@ if(WIN32)
         target_link_libraries(zerotier-windows-dns-test PRIVATE zerotier-core ws2_32 advapi32 ole32)
         add_test(NAME windows-dns-registry COMMAND zerotier-windows-dns-test)
         add_test(NAME windows-dns-registry-existing COMMAND zerotier-windows-dns-test --existing)
+        add_executable(zerotier-windows-tap-state-test
+            windows/WindowsTapDeviceStateTest.cpp
+        )
+        add_test(NAME windows-tap-device-state COMMAND zerotier-windows-tap-state-test)
     endif()
 endif()
