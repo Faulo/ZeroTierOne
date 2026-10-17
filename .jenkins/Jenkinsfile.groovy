@@ -89,7 +89,7 @@ pipeline {
 							
 							sshPut remote: remote, from: DEPLOY_SCRIPT, into: DEPLOY_SCRIPT
 							sshPut remote: remote, from: DEPLOY_BINARY, into: DEPLOY_BINARY
-							sshCommand remote: remote, command: "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $DEPLOY_SCRIPT"
+							sshCommand remote: remote, command: 'powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $env:DEPLOY_SCRIPT $env:DEPLOY_BINARY'
 						}
 					}
 				}
