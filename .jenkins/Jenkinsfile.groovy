@@ -41,7 +41,7 @@ pipeline {
 				stage('Test') {
 					steps {
 						exec 'cmake -E rm -f .jenkins/results/CTestResults.xml'
-						exec 'ctest --test-dir .jenkins/results -C $CMAKE_BUILD_TYPE --output-on-failure --output-junit CTestResults.xml'
+						exec "ctest --test-dir .jenkins/results -C $CMAKE_BUILD_TYPE --output-on-failure --output-junit CTestResults.xml"
 					}
 					post {
 						always {
