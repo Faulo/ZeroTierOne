@@ -2,15 +2,16 @@ $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$artifacts = Join-Path $PSScriptRoot 'artifacts'
+$reports = Join-Path $PSScriptRoot 'reports'
 $buildDirectory = Join-Path $repoRoot 'build-windows-x64'
-$ctestReport = Join-Path $artifacts 'CTestResults.xml'
-$smokeReport = Join-Path $artifacts 'SmokeTestResults.xml'
+$ctestReport = Join-Path $reports 'CTestResults.xml'
+$smokeReport = Join-Path $reports 'SmokeTestResults.xml'
 $binary = Join-Path $buildDirectory 'zerotier-one.exe'
-$stdoutPath = Join-Path $artifacts 'version.stdout.txt'
-$stderrPath = Join-Path $artifacts 'version.stderr.txt'
+$stdoutPath = Join-Path $reports 'version.stdout.txt'
+$stderrPath = Join-Path $reports 'version.stderr.txt'
 
-Remove-Item -LiteralPath $ctestReport, $smokeReport, $stdoutPath, $stderrPath -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $reports -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Path $reports | Out-Null
 
 & ctest `
 	--test-dir $buildDirectory `

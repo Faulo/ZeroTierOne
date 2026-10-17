@@ -15,6 +15,11 @@ pipeline {
 			steps {
 				powershell '& .\\.jenkins\\build.ps1'
 			}
+			post {
+				success {
+					archiveArtifacts artifacts: '.jenkins/artifacts/**.exe'
+				}
+			}
 		}
 		stage('Test') {
 			steps {
@@ -22,14 +27,9 @@ pipeline {
 			}
 			post {
 				always {
-					junit testResults: '.jenkins/artifacts/*TestResults.xml'
+					junit testResults: '.jenkins/reports/**.xml'
 				}
 			}
-		}
-	}
-	post {
-		always {
-			archiveArtifacts artifacts: '.jenkins/artifacts/**', allowEmptyArchive: true, fingerprint: true
 		}
 	}
 }
