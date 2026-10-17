@@ -67,6 +67,7 @@ pipeline {
 
 				script {
 					def targets = ['popo']
+					def remoteBinary = ".jenkins/${DEPLOY_BINARY.tokenize('/').last()}"
 
 					for (def target in targets) {
 						def ip = execStdout "getent ahostsv4 $target | awk '\$1 ~ /^192.168./ { print \$1; exit }'"
@@ -84,8 +85,8 @@ pipeline {
 							remote.identityFile = SSH_KEY_FILE
 
 							sshPut remote: remote, from: DEPLOY_SCRIPT, into: DEPLOY_SCRIPT
-							sshPut remote: remote, from: DEPLOY_BINARY, into: DEPLOY_BINARY
-							sshCommand remote: remote, command: "pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $DEPLOY_SCRIPT -Binary $DEPLOY_BINARY"
+							sshPut remote: remote, from: DEPLOY_BINARY, into: remoteBinary
+							sshCommand remote: remote, command: "pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $DEPLOY_SCRIPT -Binary $remoteBinary"
 						}
 					}
 				}
