@@ -25,7 +25,16 @@ $env:RUSTUP_HOME = 'C:\rustup'
 $rustupInstaller = 'C:\rustup-init.exe'
 $rustupBaseUri = 'https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc'
 Invoke-WebRequest -UseBasicParsing -Uri "$rustupBaseUri/rustup-init.exe" -OutFile $rustupInstaller
-$expectedRustupSha256 = ((Invoke-WebRequest -UseBasicParsing -Uri "$rustupBaseUri/rustup-init.exe.sha256").Content -split '\s+')[0].ToLowerInvariant()
+$rustupChecksumContent = (Invoke-WebRequest -UseBasicParsing -Uri "$rustupBaseUri/rustup-init.exe.sha256").Content
+$rustupChecksumText = if ($rustupChecksumContent -is [byte[]]) {
+	[Text.Encoding]::ASCII.GetString($rustupChecksumContent)
+} else {
+	[string] $rustupChecksumContent
+}
+$expectedRustupSha256 = ([regex]::Match($rustupChecksumText, '[0-9a-fA-F]{64}')).Value.ToLowerInvariant()
+if (-not $expectedRustupSha256) {
+	throw 'rustup checksum response did not contain a SHA-256 digest'
+}
 $actualRustupSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $rustupInstaller).Hash.ToLowerInvariant()
 if ($actualRustupSha256 -ne $expectedRustupSha256) {
 	throw "rustup installer checksum mismatch: $actualRustupSha256"
