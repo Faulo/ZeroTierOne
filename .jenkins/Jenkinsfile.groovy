@@ -66,7 +66,7 @@ pipeline {
 				unstash 'deploy'
 
 				script {
-					def targets = ['popo', 'dende']
+					def targets = ['popo', 'dende.fritz.box']
 
 					for (def target in targets) {
 						def ip = execStdout "getent ahostsv4 $target | awk '\$1 ~ /^192.168./ { print \$1; exit }'"
