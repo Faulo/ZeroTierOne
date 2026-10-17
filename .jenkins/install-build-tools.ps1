@@ -40,7 +40,7 @@ if ($rustup.ExitCode -ne 0) {
 }
 Remove-Item -LiteralPath $rustupInstaller -Force
 
-& 'C:\Git\cmd\git.exe' clone --filter=blob:none https://github.com/microsoft/vcpkg.git C:\vcpkg
+& 'C:\Git\cmd\git.exe' clone https://github.com/microsoft/vcpkg.git C:\vcpkg
 if ($LASTEXITCODE -ne 0) {
 	throw 'vcpkg clone failed'
 }
