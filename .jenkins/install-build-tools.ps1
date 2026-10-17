@@ -43,6 +43,16 @@ if ($sevenZip.ExitCode -ne 0) {
 }
 Remove-Item -LiteralPath $sevenZipInstaller -Force
 
+$powerShellArchive = 'C:\powershell.zip'
+$powerShellRelease = Invoke-RestMethod -UseBasicParsing -Uri 'https://api.github.com/repos/PowerShell/PowerShell/releases/latest'
+$powerShellAsset = @($powerShellRelease.assets | Where-Object { $_.name -match '^PowerShell-[0-9.]+-win-x64\.zip$' })
+if ($powerShellAsset.Count -ne 1) {
+	throw "Expected one Windows x64 PowerShell archive in the latest release, found $($powerShellAsset.Count)"
+}
+Invoke-WebRequest -UseBasicParsing -Uri $powerShellAsset[0].browser_download_url -OutFile $powerShellArchive
+Expand-Archive -LiteralPath $powerShellArchive -DestinationPath 'C:\pwsh'
+Remove-Item -LiteralPath $powerShellArchive -Force
+
 $env:CARGO_HOME = 'C:\cargo'
 $env:RUSTUP_HOME = 'C:\rustup'
 $rustupInstaller = 'C:\rustup-init.exe'
@@ -66,5 +76,5 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $machinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
-$toolPaths = @('C:\cmake\bin', 'C:\ninja', 'C:\7zip', 'C:\cargo\bin', 'C:\vcpkg')
+$toolPaths = @('C:\cmake\bin', 'C:\ninja', 'C:\7zip', 'C:\pwsh', 'C:\cargo\bin', 'C:\vcpkg')
 [Environment]::SetEnvironmentVariable('Path', (($toolPaths + $machinePath) -join ';'), 'Machine')
