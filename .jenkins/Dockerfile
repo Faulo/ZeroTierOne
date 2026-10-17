@@ -12,8 +12,7 @@ RUN & C:/zerotier-build/install-build-tools.ps1
 
 ENV CARGO_HOME="C:\cargo" `
     RUSTUP_HOME="C:\rustup" `
-    VCPKG_ROOT="C:\vcpkg" `
-    PATH="C:\cmake\bin;C:\cargo\bin;C:\vcpkg;${PATH}"
+    VCPKG_ROOT="C:\vcpkg"
 
 RUN cmake --version; `
     cargo --version; `

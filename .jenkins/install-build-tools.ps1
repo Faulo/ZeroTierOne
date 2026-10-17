@@ -38,3 +38,7 @@ if ($LASTEXITCODE -ne 0) {
 if ($LASTEXITCODE -ne 0) {
 	throw 'vcpkg bootstrap failed'
 }
+
+$machinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
+$toolPaths = @('C:\cmake\bin', 'C:\cargo\bin', 'C:\vcpkg')
+[Environment]::SetEnvironmentVariable('Path', (($toolPaths + $machinePath) -join ';'), 'Machine')
