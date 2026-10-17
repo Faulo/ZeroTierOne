@@ -1,17 +1,21 @@
+[CmdletBinding()]
+param (
+	[Parameter(Mandatory = $true, Position = 0)]
+	[ValidateNotNullOrEmpty()]
+	[string] $Binary
+)
+
 $ErrorActionPreference = 'Stop'
 
 $serviceName = 'ZeroTierOneService'
 $target = 'C:\ProgramData\ZeroTier\One\zerotier-one_x64.exe'
-$backup = "$target.previous"
-$incoming = Join-Path $env:USERPROFILE 'zerotier-one.exe'
+$backup = "$target.bak"
 
-if (-not (Test-Path $incoming)) {
-	throw "Uploaded ZeroTier executable not found at $incoming"
-}
-if (-not (Test-Path $target)) {
-	throw "Installed ZeroTier executable not found at $target"
+if (-not (Test-Path -LiteralPath $Binary -PathType Leaf)) {
+	throw "Uploaded ZeroTier executable not found at $Binary"
 }
 
+$incoming = (Resolve-Path -LiteralPath $Binary).Path
 $expectedHash = (Get-FileHash $incoming -Algorithm SHA256).Hash
 $service = Get-Service $serviceName
 if ($service.Status -ne 'Stopped') {
@@ -51,6 +55,4 @@ try {
 		(Get-Service $serviceName).WaitForStatus('Running', '00:00:30')
 	}
 	throw $deploymentError
-} finally {
-	Remove-Item $incoming -Force -ErrorAction SilentlyContinue
 }
