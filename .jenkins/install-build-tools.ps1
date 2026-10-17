@@ -27,6 +27,22 @@ Invoke-WebRequest -UseBasicParsing -Uri $ninjaAsset[0].browser_download_url -Out
 Expand-Archive -LiteralPath $ninjaArchive -DestinationPath 'C:\ninja'
 Remove-Item -LiteralPath $ninjaArchive -Force
 
+$sevenZipInstaller = 'C:\7zip-installer.exe'
+$sevenZipRelease = Invoke-RestMethod -UseBasicParsing -Uri 'https://api.github.com/repos/ip7z/7zip/releases/latest'
+$sevenZipAsset = @($sevenZipRelease.assets | Where-Object { $_.name -match '^7z[0-9]+-x64\.exe$' })
+if ($sevenZipAsset.Count -ne 1) {
+	throw "Expected one Windows x64 7-Zip installer in the latest release, found $($sevenZipAsset.Count)"
+}
+Invoke-WebRequest -UseBasicParsing -Uri $sevenZipAsset[0].browser_download_url -OutFile $sevenZipInstaller
+$sevenZip = Start-Process `
+	-FilePath $sevenZipInstaller `
+	-ArgumentList @('/S', '/D=C:\7zip') `
+	-NoNewWindow -PassThru -Wait
+if ($sevenZip.ExitCode -ne 0) {
+	throw "7-Zip installer failed with exit code $($sevenZip.ExitCode)"
+}
+Remove-Item -LiteralPath $sevenZipInstaller -Force
+
 $env:CARGO_HOME = 'C:\cargo'
 $env:RUSTUP_HOME = 'C:\rustup'
 $rustupInstaller = 'C:\rustup-init.exe'
@@ -50,5 +66,5 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $machinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
-$toolPaths = @('C:\cmake\bin', 'C:\ninja', 'C:\cargo\bin', 'C:\vcpkg')
+$toolPaths = @('C:\cmake\bin', 'C:\ninja', 'C:\7zip', 'C:\cargo\bin', 'C:\vcpkg')
 [Environment]::SetEnvironmentVariable('Path', (($toolPaths + $machinePath) -join ';'), 'Machine')
