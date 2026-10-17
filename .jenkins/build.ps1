@@ -121,12 +121,6 @@ try {
 		'-DBUILD_TESTING=ON'
 	)
 	Invoke-NativeCommand -FilePath cmake -ArgumentList @('--build', $buildDirectory, '--parallel')
-	Invoke-NativeCommand -FilePath ctest -ArgumentList @(
-		'--test-dir', $buildDirectory,
-		'-C', 'Release',
-		'--output-on-failure',
-		'--output-junit', (Join-Path $artifacts 'TestResults.xml')
-	)
 
 	$sourceBinary = Join-Path $buildDirectory 'zerotier-one.exe'
 	$artifactBinary = Join-Path $artifacts 'zerotier-one_x64.exe'

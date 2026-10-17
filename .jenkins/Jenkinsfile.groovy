@@ -11,15 +11,24 @@ pipeline {
 		disableResume()
 	}
 	stages {
-		stage('Build and test') {
+		stage('Build') {
 			steps {
 				powershell '& .\\.jenkins\\build.ps1'
+			}
+		}
+		stage('Test') {
+			steps {
+				powershell '& .\\.jenkins\\test.ps1'
+			}
+			post {
+				always {
+					junit testResults: '.jenkins/artifacts/*TestResults.xml'
+				}
 			}
 		}
 	}
 	post {
 		always {
-			junit testResults: '.jenkins/artifacts/TestResults.xml', allowEmptyResults: true
 			archiveArtifacts artifacts: '.jenkins/artifacts/**', allowEmptyArchive: true, fingerprint: true
 		}
 	}
