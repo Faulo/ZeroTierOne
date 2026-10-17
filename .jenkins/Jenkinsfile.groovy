@@ -36,8 +36,8 @@ pipeline {
 					}
 					post {
 						success {
-							stash name: 'zerotier-one', includes: "$DEPLOY_SCRIPT, $DEPLOY_BINARY"
 							archiveArtifacts artifacts: DEPLOY_BINARY
+							stash name: 'deploy', includes: "$DEPLOY_SCRIPT, $DEPLOY_BINARY"
 						}
 					}
 				}
@@ -66,27 +66,27 @@ pipeline {
 			}
 			steps {
 				cleanWs()
-				
-				unstash 'zerotier-one'
-				
+
+				unstash 'deploy'
+
 				script {
 					def targets = ['popo']
-					
+
 					for (def target in targets) {
 						def ip = execStdout "getent ahostsv4 $target | awk '\$1 ~ /^192.168./ { print \$1; exit }'"
-						
+
 						echo "IP of '$target' is: $ip"
-						
+
 						def remote = [
 							name: target,
 							host: ip,
 							allowAnyHosts: true
 						]
-						
+
 						withCredentials([sshUserPrivateKey(credentialsId: SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY_FILE', usernameVariable: 'SSH_USER')]) {
 							remote.user = SSH_USER
 							remote.identityFile = SSH_KEY_FILE
-							
+
 							sshPut remote: remote, from: DEPLOY_SCRIPT, into: DEPLOY_SCRIPT
 							sshPut remote: remote, from: DEPLOY_BINARY, into: DEPLOY_BINARY
 							sshCommand remote: remote, command: "pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $DEPLOY_SCRIPT -Binary $DEPLOY_BINARY"
