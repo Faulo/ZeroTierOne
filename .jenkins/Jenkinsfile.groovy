@@ -51,6 +51,10 @@ pipeline {
 			agent {
 				label 'Garl'
 			}
+			options {
+				skipDefaultCheckout()
+				skipStagesAfterUnstable()
+			}
 			steps {
 				exec 'ping popo'
 			}
