@@ -55,8 +55,9 @@ pipeline {
 		stage('Deploy') {
 			agent {
 				docker {
-					image 'alpine:latest'
+					image 'alpine/git:latest'
 					label 'Garl'
+					args '--entrypoint='
 				}
 			}
 			options {
@@ -68,7 +69,6 @@ pipeline {
 			}
 			steps {
 				unstash 'zerotier-one'
-				exec 'apk add --no-cache openssh-client'
 				writeFile file: '.jenkins/deploy.ps1', text: '''
 $ErrorActionPreference = 'Stop'
 
@@ -133,7 +133,7 @@ try {
 					exec '''
 set -eu
 
-POPO_IP="$(getent ahostsv4 popo | awk '$2 == "STREAM" && $1 !~ /^169[.]254[.]/ { print $1; exit }')"
+POPO_IP="$(nslookup -type=A popo | awk '/^Name:/ { answer = 1; next } answer && $1 == "Address:" && $2 ~ /^[0-9]+[.]/ && $2 !~ /^169[.]254[.]/ { print $2; exit }')"
 test -n "$POPO_IP"
 
 ssh-keyscan -T 5 -t ed25519 "$POPO_IP" > .jenkins/popo_known_hosts
