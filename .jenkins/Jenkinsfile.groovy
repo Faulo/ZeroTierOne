@@ -20,25 +20,25 @@ pipeline {
 	stages {
 		stage('Build') {
 			steps {
-				dir('.jenkins/result') {
+				dir('.jenkins/results') {
 					deleteDir()
 				}
-				exec 'cmake -S . -B .jenkins/result'
-				exec 'cmake --build .jenkins/result --parallel'
+				exec 'cmake -S . -B .jenkins/results'
+				exec 'cmake --build .jenkins/results --parallel'
 			}
 			post {
 				success {
-					archiveArtifacts artifacts: 'result/*.exe'
+					archiveArtifacts artifacts: 'results/*.exe'
 				}
 			}
 		}
 		stage('Test') {
 			steps {
-				exec 'ctest --test-dir .jenkins/result -C $CMAKE_BUILD_TYPE --output-on-failure --output-junit .jenkins/result/CTestResults.xml'
+				exec 'ctest --test-dir .jenkins/results -C $CMAKE_BUILD_TYPE --output-on-failure --output-junit .jenkins/results/CTestResults.xml'
 			}
 			post {
 				always {
-					junit testResults: '.jenkins/result/*.xml'
+					junit testResults: '.jenkins/results/*.xml'
 				}
 			}
 		}
