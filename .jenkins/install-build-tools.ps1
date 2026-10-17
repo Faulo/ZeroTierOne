@@ -9,6 +9,7 @@ $vcpkgCommit = 'a7acc4f979f2afde60757e0f9b572b5710ac08b1'
 $cmakeArchive = 'C:\cmake.zip'
 $cmakeExtract = 'C:\cmake-extract'
 Invoke-WebRequest `
+	-UseBasicParsing `
 	-Uri "https://github.com/Kitware/CMake/releases/download/v$cmakeVersion/cmake-$cmakeVersion-windows-x86_64.zip" `
 	-OutFile $cmakeArchive
 $actualCmakeSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $cmakeArchive).Hash.ToLowerInvariant()
@@ -23,8 +24,8 @@ $env:CARGO_HOME = 'C:\cargo'
 $env:RUSTUP_HOME = 'C:\rustup'
 $rustupInstaller = 'C:\rustup-init.exe'
 $rustupBaseUri = 'https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc'
-Invoke-WebRequest -Uri "$rustupBaseUri/rustup-init.exe" -OutFile $rustupInstaller
-$expectedRustupSha256 = ((Invoke-WebRequest -Uri "$rustupBaseUri/rustup-init.exe.sha256").Content -split '\s+')[0].ToLowerInvariant()
+Invoke-WebRequest -UseBasicParsing -Uri "$rustupBaseUri/rustup-init.exe" -OutFile $rustupInstaller
+$expectedRustupSha256 = ((Invoke-WebRequest -UseBasicParsing -Uri "$rustupBaseUri/rustup-init.exe.sha256").Content -split '\s+')[0].ToLowerInvariant()
 $actualRustupSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $rustupInstaller).Hash.ToLowerInvariant()
 if ($actualRustupSha256 -ne $expectedRustupSha256) {
 	throw "rustup installer checksum mismatch: $actualRustupSha256"
