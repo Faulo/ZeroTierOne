@@ -3,6 +3,7 @@ pipeline {
 	options {
 		disableConcurrentBuilds()
 		disableResume()
+		skipStagesAfterUnstable()
 	}
 	environment {
 		CMAKE_BUILD_TYPE = 'Release'
@@ -31,13 +32,13 @@ pipeline {
 					}
 					post {
 						success {
-							archiveArtifacts artifacts: 'results/*.exe'
+							archiveArtifacts artifacts: '.jenkins/results/*.exe'
 						}
 					}
 				}
 				stage('Test') {
 					steps {
-						exec 'ctest --test-dir .jenkins/results -C $CMAKE_BUILD_TYPE --output-on-failure --output-junit .jenkins/results/CTestResults.xml'
+						exec 'ctest --test-dir .jenkins/results -C %CMAKE_BUILD_TYPE% --output-on-failure --output-junit .jenkins/results/CTestResults.xml'
 					}
 					post {
 						always {
@@ -53,7 +54,6 @@ pipeline {
 			}
 			options {
 				skipDefaultCheckout()
-				skipStagesAfterUnstable()
 			}
 			steps {
 				exec 'ping popo'

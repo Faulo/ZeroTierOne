@@ -61,8 +61,13 @@ add_library(opentelemetry-cpp::api INTERFACE IMPORTED)
 set_target_properties(opentelemetry-cpp::api PROPERTIES
   INTERFACE_COMPILE_DEFINITIONS "OPENTELEMETRY_ABI_VERSION_NO=1"
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "-framework CoreFoundation"
 )
+
+if(APPLE)
+  set_property(TARGET opentelemetry-cpp::api PROPERTY
+    INTERFACE_LINK_LIBRARIES "-framework CoreFoundation"
+  )
+endif()
 
 # Load information for each installed configuration.
 file(GLOB _cmake_config_files "${CMAKE_CURRENT_LIST_DIR}/opentelemetry-cpp-api-target-*.cmake")
