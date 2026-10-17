@@ -31,6 +31,7 @@ pipeline {
 						exec 'cmake -E make_directory .jenkins/results .jenkins/cache/cargo .jenkins/cache/vcpkg'
 						exec 'cmake -S . -B .jenkins/results'
 						exec 'cmake --build .jenkins/results --parallel'
+						stash name: 'zerotier-one', includes: '.jenkins/results/zerotier-one.exe'
 					}
 					post {
 						success {
@@ -53,13 +54,101 @@ pipeline {
 		}
 		stage('Deploy') {
 			agent {
-				label 'Garl'
+				docker {
+					image 'alpine:latest'
+					label 'Garl'
+				}
 			}
 			options {
 				skipDefaultCheckout()
+				timeout(time: 2, unit: 'MINUTES')
+			}
+			environment {
+				POPO_SSH_HOST_KEY_SHA256 = 'SHA256:YvOebKch9c4d13c++p7G39z2LJ0KQfEeVwro3QG7eFU'
 			}
 			steps {
-				exec 'ping popo'
+				unstash 'zerotier-one'
+				exec 'apk add --no-cache openssh-client'
+				writeFile file: '.jenkins/deploy.ps1', text: '''
+$ErrorActionPreference = 'Stop'
+
+$serviceName = 'ZeroTierOneService'
+$target = 'C:\\ProgramData\\ZeroTier\\One\\zerotier-one_x64.exe'
+$backup = "$target.previous"
+$incoming = Join-Path $env:USERPROFILE 'zerotier-one_x64.exe.new'
+$expectedHashFile = "$incoming.sha256"
+
+$expectedHash = (Get-Content $expectedHashFile -Raw).Trim()
+$actualHash = (Get-FileHash $incoming -Algorithm SHA256).Hash
+if ($actualHash -ne $expectedHash) {
+	throw "Uploaded binary hash mismatch: expected $expectedHash, got $actualHash"
+}
+if (-not (Test-Path $target)) {
+	throw "Installed ZeroTier executable not found at $target"
+}
+
+$service = Get-Service $serviceName
+if ($service.Status -ne 'Stopped') {
+	Stop-Service $serviceName -Force
+	$service.WaitForStatus('Stopped', '00:00:30')
+}
+
+$backupCreated = $false
+try {
+	Remove-Item $backup -Force -ErrorAction SilentlyContinue
+	Move-Item $target $backup
+	$backupCreated = $true
+	Move-Item $incoming $target
+
+	Start-Service $serviceName
+	$service.WaitForStatus('Running', '00:00:30')
+	Start-Sleep -Seconds 5
+	if ((Get-Service $serviceName).Status -ne 'Running') {
+		throw "$serviceName did not remain running"
+	}
+
+	$installedHash = (Get-FileHash $target -Algorithm SHA256).Hash
+	if ($installedHash -ne $expectedHash) {
+		throw "Installed binary hash mismatch: expected $expectedHash, got $installedHash"
+	}
+	Write-Output "$serviceName is running with SHA256 $installedHash"
+} catch {
+	$deploymentError = $_
+	if ($backupCreated) {
+		Stop-Service $serviceName -Force -ErrorAction SilentlyContinue
+		(Get-Service $serviceName).WaitForStatus('Stopped', '00:00:30')
+		Remove-Item $target -Force -ErrorAction SilentlyContinue
+		Move-Item $backup $target -Force
+	}
+	if ((Get-Service $serviceName).Status -ne 'Running') {
+		Start-Service $serviceName
+		(Get-Service $serviceName).WaitForStatus('Running', '00:00:30')
+	}
+	throw $deploymentError
+} finally {
+	Remove-Item $incoming, $expectedHashFile -Force -ErrorAction SilentlyContinue
+}
+'''.stripIndent()
+				withCredentials([sshUserPrivateKey(credentialsId: 'Popo', keyFileVariable: 'POPO_SSH_KEY', usernameVariable: 'POPO_SSH_USER')]) {
+					exec '''
+set -eu
+
+POPO_IP="$(getent ahostsv4 popo | awk '$2 == "STREAM" && $1 !~ /^169[.]254[.]/ { print $1; exit }')"
+test -n "$POPO_IP"
+
+ssh-keyscan -T 5 -t ed25519 "$POPO_IP" > .jenkins/popo_known_hosts
+ACTUAL_HOST_KEY="$(ssh-keygen -lf .jenkins/popo_known_hosts -E sha256 | awk '{ print $2 }')"
+test "$ACTUAL_HOST_KEY" = "$POPO_SSH_HOST_KEY_SHA256"
+
+cp .jenkins/results/zerotier-one.exe zerotier-one_x64.exe.new
+sha256sum zerotier-one_x64.exe.new | awk '{ print $1 }' > zerotier-one_x64.exe.new.sha256
+
+scp -i "$POPO_SSH_KEY" -o "User=$POPO_SSH_USER" -o UserKnownHostsFile=.jenkins/popo_known_hosts -o StrictHostKeyChecking=yes \
+	zerotier-one_x64.exe.new zerotier-one_x64.exe.new.sha256 "$POPO_IP:"
+ssh -i "$POPO_SSH_KEY" -l "$POPO_SSH_USER" -o UserKnownHostsFile=.jenkins/popo_known_hosts -o StrictHostKeyChecking=yes \
+	"$POPO_IP" powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File - < .jenkins/deploy.ps1
+'''.stripIndent()
+				}
 			}
 		}
 	}
