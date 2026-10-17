@@ -7,7 +7,7 @@ pipeline {
 	}
 	environment {
 		DEPLOY_SCRIPT = '.jenkins/deploy.ps1'
-		DEPLOY_BINARY = '.jenkins/artifacts/zerotier-one_x64.exe'
+		DEPLOY_BINARY = '.jenkins/zerotier-one_x64.exe'
 	}
 	stages {
 		stage('Prepare') {
@@ -26,7 +26,7 @@ pipeline {
 			stages {
 				stage('Build') {
 					steps {
-						exec 'New-Item -ItemType Directory -Force .jenkins/artifacts, .jenkins/cache/cargo, .jenkins/reports | Out-Null'
+						exec 'New-Item -ItemType Directory -Force .jenkins/cache/cargo, .jenkins/reports | Out-Null'
 						exec 'msbuild.exe windows/ZeroTierOne.sln -m -t:ZeroTierOne -p:Configuration=$env:BUILD_CONFIGURATION -p:Platform=$env:BUILD_PLATFORM -p:VCToolsVersion=$env:MSVC_TOOLSET_VERSION -verbosity:minimal'
 						exec 'Copy-Item windows/Build/x64/Release/zerotier-one_x64.exe $env:DEPLOY_BINARY'
 					}
