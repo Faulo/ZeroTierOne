@@ -12,7 +12,7 @@ pipeline {
 		VCPKG_DEFAULT_TRIPLET = 'x64-windows-static'
 	}
 	stages {
-		stage('Build and Test') {
+		stage('Prepare Environment') {
 			agent {
 				dockerfile {
 					filename 'Dockerfile'
@@ -20,7 +20,7 @@ pipeline {
 					label 'windows && docker'
 				}
 			}
-			steps {
+			stages {
 				stage('Build') {
 					steps {
 						dir('.jenkins/results') {
@@ -45,6 +45,14 @@ pipeline {
 						}
 					}
 				}
+			}
+		}
+		stage('Deploy') {
+			agent {
+				label 'Garl'
+			}
+			steps {
+				exec 'ping popo'
 			}
 		}
 	}
