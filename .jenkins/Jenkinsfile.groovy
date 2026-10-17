@@ -13,7 +13,7 @@ pipeline {
 		VCPKG_DEFAULT_TRIPLET = 'x64-windows-static'
 	}
 	stages {
-		stage('Prepare Environment') {
+		stage('Prepare') {
 			agent {
 				dockerfile {
 					filename 'Dockerfile'
