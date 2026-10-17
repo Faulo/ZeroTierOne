@@ -17,6 +17,16 @@ if ($cmakeDirectory.Count -ne 1) {
 Move-Item -LiteralPath $cmakeDirectory[0].FullName -Destination 'C:\cmake'
 Remove-Item -LiteralPath $cmakeArchive, $cmakeExtract -Recurse -Force
 
+$ninjaArchive = 'C:\ninja.zip'
+$ninjaRelease = Invoke-RestMethod -UseBasicParsing -Uri 'https://api.github.com/repos/ninja-build/ninja/releases/latest'
+$ninjaAsset = @($ninjaRelease.assets | Where-Object { $_.name -eq 'ninja-win.zip' })
+if ($ninjaAsset.Count -ne 1) {
+	throw "Expected one Windows Ninja archive in the latest release, found $($ninjaAsset.Count)"
+}
+Invoke-WebRequest -UseBasicParsing -Uri $ninjaAsset[0].browser_download_url -OutFile $ninjaArchive
+Expand-Archive -LiteralPath $ninjaArchive -DestinationPath 'C:\ninja'
+Remove-Item -LiteralPath $ninjaArchive -Force
+
 $env:CARGO_HOME = 'C:\cargo'
 $env:RUSTUP_HOME = 'C:\rustup'
 $rustupInstaller = 'C:\rustup-init.exe'
@@ -40,5 +50,5 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $machinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
-$toolPaths = @('C:\cmake\bin', 'C:\cargo\bin', 'C:\vcpkg')
+$toolPaths = @('C:\cmake\bin', 'C:\ninja', 'C:\cargo\bin', 'C:\vcpkg')
 [Environment]::SetEnvironmentVariable('Path', (($toolPaths + $machinePath) -join ';'), 'Machine')

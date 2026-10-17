@@ -15,6 +15,7 @@ ENV CARGO_HOME="C:\cargo" `
     VCPKG_ROOT="C:\vcpkg"
 
 RUN cmake --version; `
+    ninja --version; `
     cargo --version; `
     rustc --version; `
     vcpkg version
