@@ -19,7 +19,7 @@ $incoming = (Resolve-Path -LiteralPath $Binary).Path
 $expectedHash = (Get-FileHash $incoming -Algorithm SHA256).Hash
 $service = Get-Service $serviceName
 if ($service.Status -ne 'Stopped') {
-	Stop-Service $serviceName -Force
+	Stop-Service $serviceName
 	$service.WaitForStatus('Stopped', '00:00:30')
 }
 
@@ -45,7 +45,7 @@ try {
 } catch {
 	$deploymentError = $_
 	if ($backupCreated) {
-		Stop-Service $serviceName -Force -ErrorAction SilentlyContinue
+		Stop-Service $serviceName -ErrorAction SilentlyContinue
 		(Get-Service $serviceName).WaitForStatus('Stopped', '00:00:30')
 		Remove-Item $target -Force -ErrorAction SilentlyContinue
 		Move-Item $backup $target -Force

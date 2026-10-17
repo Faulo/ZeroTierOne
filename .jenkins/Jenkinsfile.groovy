@@ -66,7 +66,7 @@ pipeline {
 				unstash 'deploy'
 
 				script {
-					def targets = ['popo']
+					def targets = ['popo', 'dende']
 
 					for (def target in targets) {
 						def ip = execStdout "getent ahostsv4 $target | awk '\$1 ~ /^192.168./ { print \$1; exit }'"
@@ -76,7 +76,8 @@ pipeline {
 						def remote = [
 							name: target,
 							host: ip,
-							allowAnyHosts: true
+							allowAnyHosts: true,
+							pty: true
 						]
 
 						withCredentials([sshUserPrivateKey(credentialsId: SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY_FILE', usernameVariable: 'SSH_USER')]) {
